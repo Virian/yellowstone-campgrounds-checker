@@ -20,11 +20,16 @@ const database = firebase.firestore();
 
 router.get(check, function (req, res) {
   const key = req.query.key;
+  console.log('[' + new Date() + '] Check invoked.');
 
   if (key !== apiKey) {
     res.status(403).send({error: 'Key doesn\'t match!'});
+    console.error('[' + new Date() + '] Key doesn\'t match.');
     return;
   }
+
+
+  console.log('[' + new Date() + '] Key matches.');
 
   /*request('https://www.nps.gov/yell/planyourvisit/campgrounds.htm', function (error, response, body) {
     const dom = parser.parseFromString(body);
@@ -50,6 +55,7 @@ router.get(check, function (req, res) {
       })
     })
   })
+  console.log('[' + new Date() + '] Exiting check.');
   res.send({status: 'success'});
 });
 
