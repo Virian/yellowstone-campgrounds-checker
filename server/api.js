@@ -10,7 +10,8 @@ const campgrounds = require('./config/campgrounds.json');
 const router = express.Router();
 const { URLS } = require('./config');
 const {
-  check
+  check,
+  getAll,
 } = URLS;
 
 moment.tz.setDefault('America/Denver');
@@ -62,6 +63,43 @@ router.get(check, function (req, res) {
     })
   })
   console.log('[' + new Date() + '] Exiting check.');
+  res.send({status: 'success'});
+});
+
+router.get(getAll, function (req, res) {
+  const key = req.query.key;
+  console.log('[' + new Date() + '] GetAll invoked.');
+
+  if (key !== process.env.API_KEY) {
+    res.status(403).send({error: 'Key doesn\'t match!'});
+    console.error('[' + new Date() + '] Key doesn\'t match.');
+    return;
+  }
+
+  console.log('[' + new Date() + '] Key matches.');
+
+  campgrounds.map((campground, idx) => {
+    const batch = this.db.batch()
+    const campgroundsRef = this.db.collection('test_camp2')
+    axios.get('https://nps-yell.cartodb.com/api/v2/sql', {
+      params: {
+        cb: new Date().getTime(),
+        q: 'SELECT * FROM campgrounds_and_lodging_status x WHERE x.npmap_id=\'' + campground.npmap_id + '\''
+      }
+    }).then(response => {
+      response.data.rows.map(row => {
+        const newRow = campgroundsRef.doc()
+        batch.set(newRow, {
+          id: row.npmap_id,
+          fillTime: moment(row.fill_datetime).unix(),
+          name: campground.name,
+          isClosed: row.is_closed
+        })
+      })
+      batch.commit().then(() => console.log('[' + new Date() + '] getAll - commited ' + idx))
+    })
+  })
+  console.log('[' + new Date() + '] Exiting getAll.');
   res.send({status: 'success'});
 });
 
