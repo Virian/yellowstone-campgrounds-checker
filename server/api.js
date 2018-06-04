@@ -6,23 +6,29 @@ const moment = require('moment-timezone');
 // const DomParser = require('dom-parser');
 // const parser = new DomParser();
 const firebase = require('firebase');
-const firebaseConfig = require('./config/firebase.config.json');
 const campgrounds = require('./config/campgrounds.json');
 const router = express.Router();
-const { URLS, apiKey } = require('./config');
+const { URLS } = require('./config');
 const {
   check
 } = URLS;
 
 moment.tz.setDefault('America/Denver');
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp({
+  apiKey: process.env.FIREBASE_APIKEY,
+  authDomain: process.env.FIREBASE_AUTHDOMAIN,
+  databaseURL: process.env.FIREBASE_DATABASEURL,
+  projectId: process.env.FIREBASE_PROJECTID,
+  storageBucket: process.env.FIREBASE_STORAGEBUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGINGSENDERID
+});
 const database = firebase.firestore();
 
 router.get(check, function (req, res) {
   const key = req.query.key;
   console.log('[' + new Date() + '] Check invoked.');
 
-  if (key !== apiKey) {
+  if (key !== process.env.API_KEY) {
     res.status(403).send({error: 'Key doesn\'t match!'});
     console.error('[' + new Date() + '] Key doesn\'t match.');
     return;

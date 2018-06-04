@@ -4,4 +4,3 @@
 /build/
 /.idea/
 /server/config/firebase.config.json
-/server/config/campgrounds.json
