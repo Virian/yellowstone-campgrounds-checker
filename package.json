@@ -8,7 +8,7 @@
   },
   "scripts": {
     "server": "cd server && nodemon index --mode development",
-    "start": "cd server && node index"
+    "start": "cd server && node index PORT=5000"
   },
   "dependencies": {
     "axios": "^0.18.0",

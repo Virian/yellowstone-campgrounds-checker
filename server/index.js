@@ -26,6 +26,6 @@ app.use(bodyParser.text({ type: "*/*" }));
 app.use(express.static('../src'));
 app.use('/api', require('./api'));
 
-app.listen(process.env.port || 4000, function () {
+app.listen(process.env.PORT || 4000, function () {
   console.log('Listening for requests.');
 });
