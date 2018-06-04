@@ -79,8 +79,8 @@ router.get(getAll, function (req, res) {
   console.log('[' + new Date() + '] Key matches.');
 
   campgrounds.map((campground, idx) => {
-    const batch = this.db.batch()
-    const campgroundsRef = this.db.collection('test_camp2')
+    const batch = database.batch()
+    const campgroundsRef = database.collection('test_camp2')
     axios.get('https://nps-yell.cartodb.com/api/v2/sql', {
       params: {
         cb: new Date().getTime(),
