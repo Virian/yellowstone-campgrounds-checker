@@ -51,7 +51,7 @@ router.get(check, function (req, res) {
         q: 'SELECT * FROM campgrounds_and_lodging_status x WHERE x.npmap_id=\'' + campground.npmap_id + '\' AND x.fill_datetime > \'' + yesterday.toISOString() + '\''
       }
     }).then(response => {
-      const campgroundsRef = database.collection('test_camp2');
+      const campgroundsRef = database.collection('campgrounds');
       response.data.rows.map(row => {
         campgroundsRef.add({
           id: row.npmap_id,
@@ -80,7 +80,7 @@ router.get(getAll, function (req, res) {
 
   campgrounds.map((campground, idx) => {
     const batch = database.batch()
-    const campgroundsRef = database.collection('test_camp2')
+    const campgroundsRef = database.collection('campgrounds')
     axios.get('https://nps-yell.cartodb.com/api/v2/sql', {
       params: {
         cb: new Date().getTime(),
