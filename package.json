@@ -7,7 +7,8 @@
     "hints": false
   },
   "scripts": {
-    "server": "cd server && nodemon index --mode development"
+    "server": "cd server && nodemon index --mode development",
+    "start": "cd server && node index"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -21,5 +22,8 @@
     "nodemon": "^1.17.2",
     "path": "^0.12.7",
     "request": "^2.87.0"
+  },
+  "engines": {
+    "node": "8.9.1"
   }
 }

@@ -9,7 +9,7 @@ const firebase = require('firebase');
 const firebaseConfig = require('./config/firebase.config.json');
 const campgrounds = require('./config/campgrounds.json');
 const router = express.Router();
-const { URLS } = require('./config');
+const { URLS, apiKey } = require('./config');
 const {
   check
 } = URLS;
@@ -20,6 +20,11 @@ const database = firebase.firestore();
 
 router.get(check, function (req, res) {
   const key = req.query.key;
+
+  if (key !== apiKey) {
+    res.status(403).send({error: 'Key doesn\'t match!'});
+    return;
+  }
 
   /*request('https://www.nps.gov/yell/planyourvisit/campgrounds.htm', function (error, response, body) {
     const dom = parser.parseFromString(body);
@@ -34,7 +39,7 @@ router.get(check, function (req, res) {
         q: 'SELECT * FROM campgrounds_and_lodging_status x WHERE x.npmap_id=\'' + campground.npmap_id + '\' AND x.fill_datetime > \'' + yesterday.toISOString() + '\''
       }
     }).then(response => {
-      const campgroundsRef = database.collection('campgrounds');
+      const campgroundsRef = database.collection('test_camp2');
       response.data.rows.map(row => {
         campgroundsRef.add({
           id: row.npmap_id,
@@ -45,7 +50,7 @@ router.get(check, function (req, res) {
       })
     })
   })
-  res.send(key);
+  res.send({status: 'success'});
 });
 
 module.exports = router;
