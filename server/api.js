@@ -12,6 +12,7 @@ const { URLS } = require('./config');
 const {
   check,
   getAll,
+  wakeUp,
 } = URLS;
 
 moment.tz.setDefault('America/Denver');
@@ -24,6 +25,11 @@ firebase.initializeApp({
   messagingSenderId: process.env.FIREBASE_MESSAGINGSENDERID
 });
 const database = firebase.firestore();
+
+router.get(wakeUp, function (req, res) {
+  console.log('[' + new Date() + '] WakeUp invoked.');
+  res.send({status: 'success'});
+})
 
 router.get(check, function (req, res) {
   const key = req.query.key;
