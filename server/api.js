@@ -25,13 +25,23 @@ firebase.initializeApp({
   messagingSenderId: process.env.FIREBASE_MESSAGINGSENDERID
 });
 const database = firebase.firestore();
+const settings = { timestampsInSnapshots: true };
+database.settings(settings);
+
+firebase.auth().signInWithEmailAndPassword(process.env.FIREBASE_EMAIL, process.env.FIREBASE_PASSWORD)
+  .then(() => {
+    console.log('[' + new Date() + '] Logged in to Firebase.');
+  })
+  .catch(err => {
+    console.error('[' + new Date() + '] ' + err.message);
+  });
 
 router.get(wakeUp, function (req, res) {
   console.log('[' + new Date() + '] WakeUp invoked.');
   res.send({status: 'success'});
 })
 
-router.get(check, function (req, res) {
+router.get(check, async function (req, res) {
   const key = req.query.key;
   console.log('[' + new Date() + '] Check invoked.');
 
@@ -41,7 +51,6 @@ router.get(check, function (req, res) {
     return;
   }
 
-
   console.log('[' + new Date() + '] Key matches.');
 
   /*request('https://www.nps.gov/yell/planyourvisit/campgrounds.htm', function (error, response, body) {
@@ -49,15 +58,16 @@ router.get(check, function (req, res) {
     console.log(dom.getElementById('cs_control_2680786').innerHTML);
     // console.log(Parser(body)[2].children[6].children[37]);
   });*/
-  campgrounds.map(campground => {
+  await Promise.all(campgrounds.map(async (campground) => {
     const yesterday = moment().subtract(1, 'day');
-    axios.get('https://nps-yell.cartodb.com/api/v2/sql', {
+    await axios.get('https://nps-yell.cartodb.com/api/v2/sql', {
       params: {
         cb: new Date().getTime(),
         q: 'SELECT * FROM campgrounds_and_lodging_status x WHERE x.npmap_id=\'' + campground.npmap_id + '\' AND x.fill_datetime > \'' + yesterday.toISOString() + '\''
       }
     }).then(response => {
       const campgroundsRef = database.collection('campgrounds');
+      console.log('[' + new Date() + '] Check: ' + campground.name + ': found ' + response.data.rows.length + ' new fill time(s).');
       response.data.rows.map(row => {
         campgroundsRef.add({
           id: row.npmap_id,
@@ -67,12 +77,13 @@ router.get(check, function (req, res) {
         })
       })
     })
-  })
+  }));
+
   console.log('[' + new Date() + '] Exiting check.');
   res.send({status: 'success'});
 });
 
-router.get(getAll, function (req, res) {
+router.get(getAll, async function (req, res) {
   const key = req.query.key;
   console.log('[' + new Date() + '] GetAll invoked.');
 
@@ -84,15 +95,16 @@ router.get(getAll, function (req, res) {
 
   console.log('[' + new Date() + '] Key matches.');
 
-  campgrounds.map((campground, idx) => {
+  await Promise.all(campgrounds.map(async (campground, idx) => {
     const batch = database.batch()
     const campgroundsRef = database.collection('campgrounds')
-    axios.get('https://nps-yell.cartodb.com/api/v2/sql', {
+    await axios.get('https://nps-yell.cartodb.com/api/v2/sql', {
       params: {
         cb: new Date().getTime(),
         q: 'SELECT * FROM campgrounds_and_lodging_status x WHERE x.npmap_id=\'' + campground.npmap_id + '\''
       }
-    }).then(response => {
+    }).then(async (response) => {
+      console.log('[' + new Date() + '] GetAll: ' + campground.name + ': found ' + response.data.rows.length + ' new fill time(s).');
       response.data.rows.map(row => {
         const newRow = campgroundsRef.doc()
         batch.set(newRow, {
@@ -102,9 +114,10 @@ router.get(getAll, function (req, res) {
           isClosed: row.is_closed
         })
       })
-      batch.commit().then(() => console.log('[' + new Date() + '] getAll - commited ' + idx))
+      await batch.commit().then(() => console.log('[' + new Date() + '] getAll - commited ' + idx));
     })
-  })
+  }));
+
   console.log('[' + new Date() + '] Exiting getAll.');
   res.send({status: 'success'});
 });
